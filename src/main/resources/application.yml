@@ -1,0 +1,36 @@
+server:
+  port: 8081
+
+#数据库配置
+spring:
+  datasource:
+    driver: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/db_test?useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: root
+    password: 123456
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: db_test
+      username: root
+      password: 123456
+      credentialdatabase: admin
+
+  http:
+    multipart:
+      maxFileSize: 300Mb
+      maxRequestSize: 1000Mb
+
+#输出mysql语句
+logging:
+  level:
+    com:
+      liyuan:
+        demo:
+          mapper: DEBUG
+    org:
+      springframework:
+        data:
+          mongodb:
+            core: DEBUG

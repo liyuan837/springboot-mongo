@@ -1,0 +1,64 @@
+package com.liyuan.demo.config;
+
+import com.zaxxer.hikari.HikariDataSource;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import javax.sql.DataSource;
+
+@Configuration
+@MapperScan(basePackages={"com.liyuan.demo.mapper"},sqlSessionTemplateRef = "makeSqlSessionTemplate")
+@EnableTransactionManagement
+public class MyBatisConfiguration {
+    @Value("${spring.datasource.driver}")
+    private String driverClassName;
+    @Value("${spring.datasource.url}")
+    private String url;
+    @Value("${spring.datasource.username}")
+    private String username;
+    @Value("${spring.datasource.password}")
+    private String password;
+
+    @Bean(destroyMethod = "close",name = "dataSource")
+    @Primary
+    public DataSource primaryDataSource() {
+        HikariDataSource hikariDataSource = new HikariDataSource();
+        hikariDataSource.setPoolName("MongoSpringBoot-pool");
+        hikariDataSource.setDriverClassName(driverClassName);
+        hikariDataSource.setJdbcUrl(url);
+        hikariDataSource.setUsername(username);
+        hikariDataSource.setPassword(password);
+        return hikariDataSource;
+    }
+
+    @Bean(name = "makeDataSourceTransactionManager")
+    @Primary
+    public DataSourceTransactionManager makeDataSourceTransactionManager(@Qualifier("dataSource")DataSource dataSource) {
+        DataSourceTransactionManager manager = new DataSourceTransactionManager();
+        manager.setDataSource(dataSource);
+        return manager;
+    }
+
+    @Bean(name = "makeSqlSessionFactoryBean")
+    @Primary
+    public SqlSessionFactory makeSqlSessionFactoryBean(@Qualifier("dataSource")DataSource dataSource) throws Exception {
+        SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
+        sessionFactory.setDataSource(dataSource);
+        sessionFactory.setTypeAliasesPackage("com.liyuan.demo.domain");
+        return sessionFactory.getObject();
+    }
+
+    @Bean(name = "makeSqlSessionTemplate")
+    @Primary
+    public SqlSessionTemplate makeSqlSessionTemplate(@Qualifier("makeSqlSessionFactoryBean")SqlSessionFactory sqlSessionFactory) throws Exception {
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+}
